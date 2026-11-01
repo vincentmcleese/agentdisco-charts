@@ -32,6 +32,8 @@
   function lab(s) { var d = new Date(s + "T00:00:00Z"); return MON[d.getUTCMonth()] + " " + d.getUTCDate(); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function last(a) { return a[a.length - 1]; }
+  // The line sits on the last week point before the change, so the drop starts at the line.
+  function snap(ws, date) { var t = day(date), at = ws[0]; ws.forEach(function (w) { if (day(w) <= t) at = w; }); return at; }
 
   function frame(weeks) {
     var W = 560, H = 290, m = { t: 34, r: 128, b: 26, l: 34 };
@@ -75,7 +77,7 @@
     var c = frame(d.weeks), s = c.g;
     var stable = p.series.filter(function (x) { return x.role !== "losing"; }), lose = p.series.filter(function (x) { return x.role === "losing"; });
     stable.forEach(function (x) { s += '<path d="' + c.path(d.weeks, x.values) + '" fill="none" stroke="var(--rest)" stroke-width="1.25"/>'; });
-    (p.markers || []).forEach(function (k) { s += marker(c, k.date, k.brand + " · " + lab(k.date), logoFor(logos, k.logo || k.brand)); });
+    (p.markers || []).forEach(function (k) { s += marker(c, snap(d.weeks, k.date), k.brand + " · " + lab(k.date), logoFor(logos, k.logo || k.brand)); });
     var labels = [];
     lose.forEach(function (x, j) {
       s += '<path d="' + c.path(d.weeks, x.values) + '" fill="none" stroke="var(--you)" stroke-width="2.5" stroke-linejoin="round" stroke-dasharray="' + (j % 2 ? "6 4" : "") + '"/>';
@@ -129,5 +131,5 @@
     return wrap;
   }
 
-  root.AgentDiscoCharts = { render: render, version: "1.1.1" };
+  root.AgentDiscoCharts = { render: render, version: "1.1.2" };
 })(typeof window !== "undefined" ? window : this);
