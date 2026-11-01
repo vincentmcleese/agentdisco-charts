@@ -91,13 +91,14 @@
   }
 
   function uplift(d, p) {
-    var f = p.forecast, fwk = f.weeks.map(function (w) { return w.week; });
-    var c = frame(d.weeks.concat(fwk)), s = c.g;
-    var lw = last(d.weeks), now = last(p.actual), ws = [lw].concat(fwk);
-    var hi = [now].concat(f.weeks.map(function (w) { return w.high; })), lo = [now].concat(f.weeks.map(function (w) { return w.low; })), ex = [now].concat(f.weeks.map(function (w) { return w.expected; }));
+    var lw = last(d.weeks), now = last(p.actual);
+    // The projection starts at the fix, on the last actual point: forecast points on or before it are dropped.
+    var fut = p.forecast.weeks.filter(function (w) { return day(w.week) > day(lw); }), fwk = fut.map(function (w) { return w.week; });
+    var c = frame(d.weeks.concat(fwk)), s = c.g, ws = [lw].concat(fwk);
+    var hi = [now].concat(fut.map(function (w) { return w.high; })), lo = [now].concat(fut.map(function (w) { return w.low; })), ex = [now].concat(fut.map(function (w) { return w.expected; }));
     var back = ws.map(function (w, i) { return "L" + c.X(w).toFixed(1) + " " + c.Y(lo[i]).toFixed(1); }).reverse().join(" ");
     s += '<path d="' + c.path(ws, hi) + " " + back + ' Z" fill="var(--green)" fill-opacity=".14"/>';
-    s += marker(c, d.ship_on, (d.ship_label || "Ship") + " · " + lab(d.ship_on), null, "var(--ink)");
+    s += marker(c, d.fix_on || lw, d.fix_label || "Proposed fix", null, "var(--ink)");
     s += '<path d="' + c.path(d.weeks, p.actual) + '" fill="none" stroke="var(--you)" stroke-width="2.5" stroke-linejoin="round"/>' + dots(c, d.weeks, p.actual, "var(--you)", "#fff", 2.5);
     s += '<path d="' + c.path(ws, ex) + '" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-dasharray="6 4" stroke-linejoin="round"/>' + dots(c, fwk, ex.slice(1), "#fff", "var(--green)", 2.5);
     var end = last(ex);
@@ -128,5 +129,5 @@
     return wrap;
   }
 
-  root.AgentDiscoCharts = { render: render, version: "1.1.0" };
+  root.AgentDiscoCharts = { render: render, version: "1.1.1" };
 })(typeof window !== "undefined" ? window : this);
